@@ -210,11 +210,9 @@ io.on("connection", socket => {
       return;
     }
 
-    const recipient = user(target);
-    if (recipient.pendingRequests.has(myId)) {
-      sendError(socket, "A request is already pending.");
-      return;
-    }
+   recipient.pendingRequests.add(myId);
+sockets.get(target)?.emit("friend_request", myId);
+socket.emit("request_sent", target);
 
     recipient.pendingRequests.add(myId);
     sockets.get(target)?.emit("friend_request", {
@@ -228,9 +226,9 @@ io.on("connection", socket => {
   socket.on("friend_response", data => {
     if (!myId) return;
 
-    const fromId = String(data?.fromId ?? data?.userId ?? data?.id ?? "");
-    const accepted = data?.accepted ?? data?.accept ?? false;
-    const me = user(myId);
+    const fromId = String(data?.requesterId ?? data?.fromId ?? data?.userId ?? data?.id ?? "");
+    sockets.get(fromId)?.emit("friend_added", myId);
+    socket.emit("friend_added", fromId);
     const requester = user(fromId);
 
     if (!me || !requester || !me.pendingRequests.has(fromId)) {
@@ -272,12 +270,8 @@ io.on("connection", socket => {
     }
 
     const key = pairKey(myId, toId);
-    const msg = {
-      fromId: myId,
-      text,
-      type: "text",
-      timestamp: now()
-    };
+sockets.get(toId)?.emit("receive_dm", msg);
+socket.emit("receive_dm", msg);
 
     if (!dmMessages.has(key)) dmMessages.set(key, []);
     dmMessages.get(key).push(msg);
@@ -319,11 +313,8 @@ io.on("connection", socket => {
     }
 
     const msg = {
-      fromId: myId,
-      type: "image",
-      imageData,
-      fileName: cleanText(data?.fileName, 150),
-      timestamp: now()
+    sockets.get(toId)?.emit("receive_dm", msg);
+socket.emit("receive_dm", msg);
     };
     const key = pairKey(myId, toId);
     if (!dmMessages.has(key)) dmMessages.set(key, []);
