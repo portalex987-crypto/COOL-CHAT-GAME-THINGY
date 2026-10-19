@@ -254,18 +254,53 @@ io.on("connection", socket => {
     socket.emit("request_sent", target);
   });
 
-  socket.on("friend_response", data => {
-    if (!myId) return;
+ socket.on("friend_response", data => {
+  if (!myId) return;
 
-    // Frontend sends { requesterId, accepted }.
-    const requesterId = String(
-      const fromId = String(
-  data?.requesterId ??
-  data?.fromId ??
-  data?.userId ??
-  data?.id ??
-  ""
-);
+  const requesterId = String(
+    data?.requesterId ??
+    data?.fromId ??
+    data?.userId ??
+    data?.id ??
+    ""
+  );
+
+  const accepted = data?.accepted === true;
+  const me = user(myId);
+  const requester = user(requesterId);
+
+  if (
+    !validId(requesterId) ||
+    !me ||
+    !requester ||
+    !me.pendingRequests.has(requesterId)
+  ) {
+    return sendError(
+      socket,
+      "That friend request is no longer available. Refresh both users and send a new request."
+    );
+  }
+
+  me.pendingRequests.delete(requesterId);
+
+  if (accepted) {
+    me.friends.add(requesterId);
+    requester.friends.add(myId);
+
+    sockets.get(requesterId)?.emit("friend_added", myId);
+    socket.emit("friend_added", requesterId);
+
+    emitUserData(myId);
+    emitUserData(requesterId);
+
+    notifyFriendPresence(myId, true);
+    notifyFriendPresence(requesterId, true);
+  }
+
+  console.log(
+    `[friend_response] ${myId} ${accepted ? "accepted" : "declined"} request from ${requesterId}`
+  );
+});
       data?.requesterId ?? data?.fromId ?? data?.userId ?? data?.id ?? ""
     );
     const accepted = data?.accepted === true;
