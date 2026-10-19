@@ -7,7 +7,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
 <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet" />
 <script src="https://cdn.socket.io/4.8.1/socket.io.min.js"></script>
-<script>window.CHAT_SERVER_URL = "https://cool-chat-game-thingy-3.onrender.com";</script>
+<script>window.CHAT_SERVER_URL = "https://cool-chat-game-thingy-4.onrender.com";</script>
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 :root{
@@ -632,7 +632,8 @@ function renderRequestQueue(){
 function respondReq(rid,accepted){socket.emit('friend_response',{requesterId:rid,accepted});pendingReqs=pendingReqs.filter(id=>id!==rid);renderRequestQueue();if(accepted)toast('Now friends with '+displayName(rid)+' 🎉','success');else toast('Declined request from #'+rid,'info');}
 
 // Socket
-const socket=io(window.CHAT_SERVER_URL && !window.CHAT_SERVER_URL.includes('YOUR-BACKEND-HOST') ? window.CHAT_SERVER_URL : undefined, { transports: ['websocket', 'polling'] });
+
+const socket = io("https://cool-chat-game-thingy-4.onrender.com", { transports: ['websocket', 'polling']});
 socket.on('connect',()=>{
   loadLocal();
   myId=localStorage.getItem('sgc_myId');
